@@ -54,13 +54,13 @@ class _AdoptionPageState extends State<AdoptionPage> {
               style: Theme.of(context).textTheme.headline4,
             ),
             Image.network(
-              _candidatePetImageUrl,
+              _currentPet.imageUrl,
               loadingBuilder: (context, child, progress) {
                 return progress == null ? child : LinearProgressIndicator();
               },
             ),
             Text(
-              '$_candidatePetName',
+              _currentPet.name,
               style: Theme.of(context).textTheme.headline4,
             ),
           ],
