@@ -6,8 +6,6 @@ void main() {
     // make some static test data for use in constructing pets
     final testName = 'Fluffy';
     final testImageUrl = 'foo.png';
-    final testTimesPet = 4;
-    final testId = 99;
 
     test('timesPet should start at 0 if not initialized', () {
       final pet = Pet(testName, testImageUrl);
