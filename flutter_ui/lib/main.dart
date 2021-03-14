@@ -30,13 +30,12 @@ class AdoptionPage extends StatefulWidget {
 }
 
 class _AdoptionPageState extends State<AdoptionPage> {
-  String _candidatePetImageUrl = PetFinder().findImageUrl();
-  String _candidatePetName = PetFinder().findName();
+  Pet _currentPet = Pet(PetFinder().findName(), PetFinder().findImageUrl());
 
   void _viewNewPet() {
     setState(() {
-      _candidatePetImageUrl = PetFinder().findImageUrl();
-      _candidatePetName = PetFinder().findName();
+      _currentPet.setName(PetFinder().findName());
+      _currentPet.setImageUrl(PetFinder().findImageUrl());
     });
   }
 
