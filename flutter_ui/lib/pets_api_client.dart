@@ -27,9 +27,8 @@ class PetsApiClient {
     }
   }
 
-  Future<Pet> postPet(http.Client client, int id, Pet pet) async {
-    final response = await client.post(
-        Uri.parse('https://10.0.2.2:5000/pets/${id.toString()}'),
+  Future<Pet> postPet(http.Client client, Pet pet) async {
+    final response = await client.post(Uri.parse('https://10.0.2.2:5000/pets'),
         body: petToJson(pet));
 
     if (response.statusCode == 201) {

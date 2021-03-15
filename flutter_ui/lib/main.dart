@@ -46,8 +46,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final client = http.Client();
+
   Pet _currentPet = Pet();
-  int timesPet = 0;
   @override
   void initState() {
     super.initState();
@@ -60,11 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentPet.setName(PetFinder().findName());
       _currentPet.setImageUrl(PetFinder().findImageUrl());
     });
-    timesPet = 0;
-  }
-
-  void _petCurrentPet() {
-    timesPet++;
   }
 
   @override
@@ -94,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             FloatingActionButton(
               onPressed: () {
-                _petCurrentPet();
                 final snackBar = SnackBar(
                   content: Text(_currentPet.name + ' was happy to be pet :)'),
                 );
@@ -106,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ElevatedButton(
                 child: Text('Adopt This Pet'),
                 onPressed: () {
-                  // TODO: send POST request to add pet to DB
+                  PetsApiClient().postPet(client, _currentPet);
                   Navigator.pushNamed(context, '/pets');
                 })
           ],
