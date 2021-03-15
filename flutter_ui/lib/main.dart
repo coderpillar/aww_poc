@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ui/pet_finder.dart';
 import 'package:flutter_ui/pet.dart';
+import 'package:flutter_ui/pets_api_client.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
 
 void main() {
+  HttpOverrides.global = new MyHttpOverrides();
   runApp(MyApp());
 }
 
@@ -15,7 +28,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(title: 'Pet Adoption Center'),
+      home: HomeScreen(),
       initialRoute: '/home',
       routes: {
         '/home': (context) => HomeScreen(),
@@ -33,7 +46,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Pet _currentPet = Pet(PetFinder().findName(), PetFinder().findImageUrl());
+  Pet _currentPet = Pet();
+  @override
+  void initState() {
+    super.initState();
+    _currentPet.setName(PetFinder().findName());
+    _currentPet.setImageUrl(PetFinder().findImageUrl());
+  }
 
   void _viewNewPet() {
     setState(() {
@@ -107,6 +126,14 @@ class PetsListScreen extends StatefulWidget {
 }
 
 class _PetsListScreenState extends State<PetsListScreen> {
+  Future<List<Pet>> futurePetsList;
+  final client = http.Client();
+  @override
+  void initState() {
+    super.initState();
+    futurePetsList = PetsApiClient().getPetsList(client);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,15 +141,21 @@ class _PetsListScreenState extends State<PetsListScreen> {
         title: Text('My Pets'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Pets list goes here.',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
+        child: FutureBuilder(
+            future: futurePetsList,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return ListView.builder(
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (context, index) => ListTile(
+                    title: Text(snapshot.data[index].name),
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Text('${snapshot.error}');
+              }
+              return CircularProgressIndicator();
+            }),
       ),
     );
   }
