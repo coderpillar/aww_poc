@@ -12,6 +12,10 @@ List<Pet> petsListFromJson(String str) =>
 String petsListToJson(List<Pet> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+Pet petFromJson(String str) => Pet.fromJson(json.decode(str));
+
+String petToJson(Pet data) => json.encode(data.toJson());
+
 class Pet {
   Pet({
     this.id,

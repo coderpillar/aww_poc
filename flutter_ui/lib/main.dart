@@ -47,6 +47,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Pet _currentPet = Pet();
+  int timesPet = 0;
   @override
   void initState() {
     super.initState();
@@ -59,10 +60,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _currentPet.setName(PetFinder().findName());
       _currentPet.setImageUrl(PetFinder().findImageUrl());
     });
+    timesPet = 0;
   }
 
   void _petCurrentPet() {
-    _currentPet.incrementTimesPet();
+    timesPet++;
   }
 
   @override
@@ -104,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ElevatedButton(
                 child: Text('Adopt This Pet'),
                 onPressed: () {
+                  // TODO: send POST request to add pet to DB
                   Navigator.pushNamed(context, '/pets');
                 })
           ],
@@ -149,6 +152,15 @@ class _PetsListScreenState extends State<PetsListScreen> {
                   itemCount: snapshot.data.length,
                   itemBuilder: (context, index) => ListTile(
                     title: Text(snapshot.data[index].name),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PetDetailScreen(pet: snapshot.data[index]),
+                        ),
+                      );
+                    },
                   ),
                 );
               } else if (snapshot.hasError) {
@@ -156,6 +168,65 @@ class _PetsListScreenState extends State<PetsListScreen> {
               }
               return CircularProgressIndicator();
             }),
+      ),
+    );
+  }
+}
+
+class PetDetailScreen extends StatefulWidget {
+  final Pet pet;
+
+  const PetDetailScreen({Key key, @required this.pet}) : super(key: key);
+
+  @override
+  _PetDetailScreenState createState() => _PetDetailScreenState();
+}
+
+class _PetDetailScreenState extends State<PetDetailScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Pet Details'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              '${widget.pet.name}',
+              style: Theme.of(context).textTheme.headline4,
+            ),
+            Image.network(
+              widget.pet.imageUrl,
+              loadingBuilder: (context, child, progress) {
+                return progress == null ? child : LinearProgressIndicator();
+              },
+              fit: BoxFit.contain,
+            ),
+            Text(
+              'You have pet ${widget.pet.name} ${widget.pet.timesPet} times',
+              style: Theme.of(context).textTheme.headline4,
+            ),
+            FloatingActionButton(
+              onPressed: () {
+                //todo: send PUT request updating number of times pet
+                final snackBar = SnackBar(
+                  content: Text('${widget.pet.name} was happy to be pet :)'),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              },
+              tooltip: 'Pet the Animal',
+              child: Icon(Icons.pets),
+            ),
+            ElevatedButton(
+                child: Text('Return ${widget.pet.name} to Shelter'),
+                onPressed: () {
+                  // TODO: send DELETE request to remove pet from DB
+                  Navigator.pushNamed(context, '/home');
+                })
+          ],
+        ),
       ),
     );
   }
