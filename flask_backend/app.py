@@ -39,10 +39,10 @@ class PetSchema(ModelSchema):
         model = Pet
         sqla_session = db.session
 
-    id = fields.Number(dump_only=True)
+    id = fields.Integer(dump_only=True)
     name = fields.String(required=True)
     image_url = fields.String(required=True)
-    times_pet = fields.Number(required=True)
+    times_pet = fields.Integer(required=True)
 
 
 @app.route('/pets', methods=['GET'])
@@ -51,7 +51,7 @@ def get_pets():
     pet_schema = PetSchema(many=True)
     pets = pet_schema.dump(get_pets)
     return make_response(
-        jsonify({"pets": pets}),
+        jsonify(pets),
         200
     )
 
@@ -59,12 +59,18 @@ def get_pets():
 @app.route('/pets/<id>', methods=['GET'])
 def get_pet_by_id(id):
     get_pet = Pet.query.get(id)
-    pet_schema = PetSchema()
-    pet = pet_schema.dump(get_pet)
-    return make_response(
-        jsonify({"pet": pet}),
-        200
-    )
+    if (get_pet):
+        pet_schema = PetSchema()
+        pet = pet_schema.dump(get_pet)
+        return make_response(
+            jsonify(pet),
+            200
+        )
+    else:
+        return make_response(
+            "Not Found",
+            404
+        )
 
 
 @app.route('/pets', methods=['POST'])
@@ -74,7 +80,7 @@ def create_pet():
     pet = pet_schema.load(data)
     result = pet_schema.dump(pet.create())
     return make_response(
-        jsonify({"pet": result}),
+        jsonify(result),
         201
     )
 
@@ -83,35 +89,47 @@ def create_pet():
 def update_pet_by_id(id):
     data = request.get_json()
     get_pet = Pet.query.get(id)
-    if data.get('name'):
-        get_pet.name = data['name']
-    if data.get('image_url'):
-        get_pet.image_url = data['image_url']
-    if data.get('times_pet'):
-        get_pet.times_pet = data['times_pet']
-    db.session.add(get_pet)
-    db.session.commit()
-    pet_schema = PetSchema(
-        only=[
-            'id',
-            'name',
-            'image_url',
-            'times_pet'
-        ]
-    )
-    pet = pet_schema.dump(get_pet)
-    return make_response(jsonify({"pet": pet}))
+    if (get_pet):
+        if data.get('name'):
+            get_pet.name = data['name']
+        if data.get('image_url'):
+            get_pet.image_url = data['image_url']
+        if data.get('times_pet'):
+            get_pet.times_pet = data['times_pet']
+        db.session.add(get_pet)
+        db.session.commit()
+        pet_schema = PetSchema(
+            only=[
+                'id',
+                'name',
+                'image_url',
+                'times_pet'
+            ]
+        )
+        pet = pet_schema.dump(get_pet)
+        return make_response(jsonify({pet}))
+    else:
+        return make_response(
+            "Not Found",
+            404
+        )
 
 
 @app.route('/pets/<id>', methods=['DELETE'])
 def delete_pet_by_id(id):
     get_pet = Pet.query.get(id)
-    db.session.delete(get_pet)
-    db.session.commit()
-    return make_response(
-        "",
-        204
-    )
+    if (get_pet):
+        db.session.delete(get_pet)
+        db.session.commit()
+        return make_response(
+            "",
+            204
+        )
+    else:
+        return make_response(
+            "Not Found",
+            404
+        )
 
 
 if __name__ == "__main__":
